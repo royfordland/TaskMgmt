@@ -6,7 +6,7 @@ namespace Api.Controllers
 {
 	[ApiController]
 	[Route("api/admin")]
-	public class AdminController(ITaskStatusService taskStatusService) : Controller
+	public class AdminController(IAdminService adminService, ITaskStatusService taskStatusService) : Controller
 	{
 		[HttpGet("/statuses")]
 		public ActionResult<IEnumerable<TaskStatus>> GetStatuses()
@@ -50,6 +50,16 @@ namespace Api.Controllers
 			int userId = 1; // Placeholder for authenticated user ID
 
 			taskStatusService.DeleteStatus(id, userId);
+
+			return Ok();
+		}
+
+		[HttpPut("/user")]
+		public ActionResult<TaskStatus> UpdateUsername(string name, int id)
+		{
+			int userId = 1; // Placeholder for authenticated user ID
+
+			adminService.UpdateUsername(name, id, userId);
 
 			return Ok();
 		}
