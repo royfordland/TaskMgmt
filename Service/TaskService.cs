@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Service.Interfaces;
 
 namespace Service
 {
-	internal class TaskService
+	public class TaskService(IDbQueryHelper dbQueryHelper) : ITaskService
 	{
+		public IEnumerable<TaskStatus> GetTaskStatuses()
+		{
+			const string sql = "SELECT id, status, is_active FROM taskmgmt.public.task_status";
+
+			return dbQueryHelper.QueryList<TaskStatus>(sql);
+		}
 	}
 }

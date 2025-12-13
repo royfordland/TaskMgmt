@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using TanvirArjel.Extensions.Microsoft.DependencyInjection;
 
 namespace Service.Interfaces
 {
-	internal interface ITaskService
+	[ScopedService]
+	public interface ITaskService
 	{
+		IEnumerable<TaskStatus> GetTaskStatuses();
 	}
 }
