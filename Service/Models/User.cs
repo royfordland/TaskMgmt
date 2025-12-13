@@ -1,12 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Insight.Database;
 
 namespace Service.Models
 {
-	internal class User
+	public class User
 	{
+		public int Id { get; set; }
+
+		public string Username { get; set; } = "";
+
+		public string Email { get; set; } = "";
+
+		[Column("is_admin")]
+		public bool IsAdmin { get; set; }
+
+		[Column("is_active")]
+		public bool IsActive { get; set; }
 	}
 }

@@ -1,12 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Service.Models
+﻿namespace Service.Models
 {
-	internal class Task
+	public abstract class TaskBase
 	{
+		public int? Id { get; set; }
+
+		public string Title { get; set; } = "";
+
+		public string Description { get; set; } = "";
+	}
+
+	public class Task : TaskBase
+	{
+		public string Status { get; set; } = "";
+
+		public string AssignedUser { get; set; } = "";
+	}
+
+	public class UpsertTask : TaskBase
+	{
+		public int StatusId { get; set; }
+
+		public int AssignedUserId { get; set; }
 	}
 }

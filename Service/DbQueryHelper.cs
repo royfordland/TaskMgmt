@@ -17,5 +17,20 @@ namespace Service
 		{
 			return _connection.QuerySql<T>(sql, parameters);
 		}
+
+		public T? QuerySingle<T>(string sql, object parameters)
+		{
+			return _connection.QuerySql<T>(sql, parameters).FirstOrDefault();
+		}
+
+		public T QueryScalar<T>(string sql, object parameters)
+		{
+			return _connection.QuerySql<T>(sql, parameters).First();
+		}
+
+		public void Execute(string sql, object parameters)
+		{
+			_connection.ExecuteSql(sql, parameters);
+		}
 	}
 }

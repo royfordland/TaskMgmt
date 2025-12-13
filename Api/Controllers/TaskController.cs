@@ -7,10 +7,10 @@ namespace Api.Controllers
 	[Route("api/task")]
 	public class TaskController(ITaskService taskService) : Controller
 	{
-		[HttpGet("/statuses")]
-		public ActionResult<IEnumerable<Service.Models.TaskStatus>> GetTaskStatuses()
+		[HttpGet()]
+		public ActionResult<IEnumerable<Service.Models.TaskStatus>> GetTasks()
 		{
-			var statuses = taskService.GetTaskStatuses();
+			var statuses = taskService.GetTasks();
 
 			return Ok(statuses);
 		}
