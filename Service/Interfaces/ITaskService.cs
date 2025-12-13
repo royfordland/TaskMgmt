@@ -5,6 +5,6 @@ namespace Service.Interfaces
 	[ScopedService]
 	public interface ITaskService
 	{
-		IEnumerable<TaskStatus> GetTaskStatuses();
+		IEnumerable<Models.TaskStatus> GetTaskStatuses();
 	}
 }

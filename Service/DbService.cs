@@ -1,28 +1,22 @@
 ﻿using System.Data;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using Service.Interfaces;
 
 namespace Service
 {
-	public class DbService : IDbService
+	public class DbService(IConfiguration configuration) : IDbService
 	{
-		private readonly string _connectionString;
-
-		public DbService(IConfiguration configuration)
-		{
-			// Read from "ConnectionStrings:DefaultConnection" first, fall back to environment variable.
-			_connectionString = configuration.GetConnectionString("DefaultConnection")
+		private readonly string _connectionString = configuration.GetConnectionString("DefaultConnection")
 				?? Environment.GetEnvironmentVariable("CONNECTION_STRING")
 				?? throw new InvalidOperationException("Connection string 'DefaultConnection' not configured.");
-		}
 
 		/// <summary>
 		/// Instantiates and opens a new SqlConnection suitable for use with Insight.Database.
 		/// </summary>
 		public IDbConnection CreateConnection()
 		{
-			var connection = new SqlConnection(_connectionString);
+			var connection = new NpgsqlConnection(_connectionString);
 			connection.Open();
 			return connection;
 		}

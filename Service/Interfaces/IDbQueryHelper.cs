@@ -1,5 +1,8 @@
-﻿namespace Service.Interfaces
+﻿using TanvirArjel.Extensions.Microsoft.DependencyInjection;
+
+namespace Service.Interfaces
 {
+	[ScopedService]
 	public interface IDbQueryHelper
 	{
 		IEnumerable<T> QueryList<T>(string sql);

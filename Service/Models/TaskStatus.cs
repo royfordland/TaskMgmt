@@ -1,4 +1,6 @@
-﻿namespace Service.Models
+﻿using Insight.Database;
+
+namespace Service.Models
 {
 	public class TaskStatus
 	{
@@ -6,6 +8,7 @@
 
 		public string Status { get; set; } = string.Empty;
 
+		[Column("is_active")]
 		public bool IsActive { get; set; }
 	}
 }

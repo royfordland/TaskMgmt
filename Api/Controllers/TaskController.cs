@@ -1,12 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Service.Interfaces;
 
 namespace Api.Controllers
 {
-	public class TaskController : Controller
+	[ApiController]
+	[Route("api/task")]
+	public class TaskController(ITaskService taskService) : Controller
 	{
-		public IActionResult Index()
+		[HttpGet("/statuses")]
+		public ActionResult<IEnumerable<Service.Models.TaskStatus>> GetTaskStatuses()
 		{
-			return View();
+			var statuses = taskService.GetTaskStatuses();
+
+			return Ok(statuses);
 		}
 	}
 }

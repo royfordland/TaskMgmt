@@ -4,11 +4,11 @@ namespace Service
 {
 	public class TaskService(IDbQueryHelper dbQueryHelper) : ITaskService
 	{
-		public IEnumerable<TaskStatus> GetTaskStatuses()
+		public IEnumerable<Models.TaskStatus> GetTaskStatuses()
 		{
 			const string sql = "SELECT id, status, is_active FROM taskmgmt.public.task_status";
 
-			return dbQueryHelper.QueryList<TaskStatus>(sql);
+			return dbQueryHelper.QueryList<Models.TaskStatus>(sql);
 		}
 	}
 }

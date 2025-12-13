@@ -10,12 +10,12 @@ namespace Service
 
 		public virtual IEnumerable<T> QueryList<T>(string sql)
 		{
-			return _connection.Query<T>(sql);
+			return _connection.QuerySql<T>(sql);
 		}
 
 		public virtual IEnumerable<T> QueryList<T>(string sql, object parameters)
 		{
-			return _connection.Query<T>(sql, parameters);
+			return _connection.QuerySql<T>(sql, parameters);
 		}
 	}
 }
