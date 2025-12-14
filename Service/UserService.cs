@@ -28,7 +28,7 @@ namespace Service
 			return dbQueryHelper.QuerySingle<User>(sql, new { id });
 		}
 
-		public long InsertUser(string username, string email, string password)
+		public long? InsertUser(string username, string email, string password)
 		{
 			var sql = $@"
 				INSERT INTO {userTable} (username, email)
@@ -40,7 +40,7 @@ namespace Service
 				email
 			};
 
-			return dbQueryHelper.QueryScalar<long>(sql, parameters);
+			return dbQueryHelper.QueryScalar<long?>(sql, parameters);
 		}
 
 		public long UpdateUser(User user, long userId)

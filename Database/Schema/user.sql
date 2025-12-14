@@ -2,6 +2,7 @@ CREATE TABLE taskmgmt.public."user" (
 	id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
 	username varchar NOT NULL,
 	email varchar NULL,
+	password text NOT NULL,
 	is_admin bool DEFAULT FALSE NOT NULL,
 	is_active bool DEFAULT TRUE NOT NULL,
 	created_dt timestamp DEFAULT NOW() NOT NULL,

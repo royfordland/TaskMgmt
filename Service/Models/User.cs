@@ -10,6 +10,8 @@ namespace Service.Models
 
 		public string Email { get; set; } = "";
 
+		public string Password { get; set; } = "";
+
 		[Column("is_admin")]
 		public bool IsAdmin { get; set; }
 

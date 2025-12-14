@@ -10,7 +10,7 @@ namespace Service.Interfaces
 
 		User? GetUser(long id);
 
-		long InsertUser(string username, string email, string password);
+		long? InsertUser(string username, string email, string password);
 
 		long UpdateUser(User user, long userId);
 
