@@ -8,7 +8,7 @@ namespace Api.Controllers
 	[Route("api/admin")]
 	public class AdminController(IAdminService adminService, ITaskStatusService taskStatusService) : Controller
 	{
-		[HttpGet("/statuses")]
+		[HttpGet("taskstatuses")]
 		public ActionResult<IEnumerable<TaskStatus>> GetStatuses()
 		{
 			var statuses = taskStatusService.GetStatuses();
@@ -16,15 +16,15 @@ namespace Api.Controllers
 			return Ok(statuses);
 		}
 
-		[HttpGet("/status/{id}")]
+		[HttpGet("taskstatus/{id}")]
 		public ActionResult<TaskStatus> GetStatus(int id)
 		{
-			var status = taskStatusService.GetStatusById(id);
+			var status = taskStatusService.GetStatus(id);
 
 			return Ok(status);
 		}
 
-		[HttpPost("/status")]
+		[HttpPost("taskstatus")]
 		public ActionResult<TaskStatus> InsertStatus(string status)
 		{
 			int userId = 1; // Placeholder for authenticated user ID
@@ -34,7 +34,7 @@ namespace Api.Controllers
 			return Ok(id);
 		}
 
-		[HttpPut("/status")]
+		[HttpPatch("taskstatus")]
 		public ActionResult<TaskStatus> UpdateStatus(TaskStatus status)
 		{
 			int userId = 1; // Placeholder for authenticated user ID
@@ -44,24 +44,24 @@ namespace Api.Controllers
 			return Ok(id);
 		}
 
-		[HttpDelete("/status")]
+		[HttpDelete("taskstatus")]
 		public ActionResult<TaskStatus> DeleteStatus(int id)
 		{
 			int userId = 1; // Placeholder for authenticated user ID
 
 			taskStatusService.DeleteStatus(id, userId);
 
-			return Ok();
+			return Ok(StatusCodes.Status204NoContent);
 		}
 
-		[HttpPut("/user")]
+		[HttpPatch("user")]
 		public ActionResult<TaskStatus> UpdateUsername(string name, int id)
 		{
 			int userId = 1; // Placeholder for authenticated user ID
 
 			adminService.UpdateUsername(name, id, userId);
 
-			return Ok();
+			return Ok(StatusCodes.Status204NoContent);
 		}
 	}
 }

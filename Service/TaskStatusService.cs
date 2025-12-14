@@ -12,7 +12,7 @@ namespace Service
 			return dbQueryHelper.QueryList<TaskStatus>(sql);
 		}
 
-		public TaskStatus? GetStatusById(int id)
+		public TaskStatus? GetStatus(long id)
 		{
 			var sql = @"
 				SELECT id, status, is_active
@@ -21,16 +21,16 @@ namespace Service
 			return dbQueryHelper.QuerySingle<TaskStatus>(sql, new { id });
 		}
 
-		public int InsertStatus(string status, int userId)
+		public long InsertStatus(string status, long userId)
 		{
 			var sql = @"
 				INSERT INTO taskmgmt.public.task_status (status, created_by)
 				VALUES (@status, @userId) RETURNING ID ";
 
-			return dbQueryHelper.QueryScalar<int>(sql, new { status, userId });
+			return dbQueryHelper.QueryScalar<long>(sql, new { status, userId });
 		}
 
-		public int UpdateStatus(TaskStatus status, int userId)
+		public long UpdateStatus(TaskStatus status, long userId)
 		{
 			var sql = @"
 				UPDATE taskmgmt.public.task_status
@@ -53,7 +53,7 @@ namespace Service
 			return status.Id;
 		}
 
-		public void DeleteStatus(int id, int userId)
+		public void DeleteStatus(long id, long userId)
 		{
 			var sql = @"
 				UPDATE taskmgmt.public.task_status

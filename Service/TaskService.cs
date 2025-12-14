@@ -9,17 +9,36 @@ namespace Service
 		public IEnumerable<Task> GetTasks()
 		{
 			var sql = @"
-				SELECT id, title, description, status_id, assigned_user_id
-				FROM taskmgmt.public.task ";
+				SELECT
+					t.id,
+					title,
+					description,
+					status,
+					username as assigneduser
+				FROM taskmgmt.public.task t
+				INNER JOIN taskmgmt.public.""user"" u
+					ON t.assigned_user_id = u.id
+				INNER JOIN taskmgmt.public.task_status ts
+					ON t.status_id = ts.id ";
 
 			return dbQueryHelper.QueryList<Task>(sql);
 		}
 
-		public int InsertTask(UpsertTask task, int userId)
+		public UpsertTask? GetTask(long id)
 		{
 			var sql = @"
-				INSERT INTO taskmgmt.public.task (title, description, status_id, assigned_user_id)
-				VALUES (@Title, @Description, @StatusId, @AssignedUserId) ";
+				SELECT id, title, description, status_id, assigned_user_id
+				FROM taskmgmt.public.task
+				WHERE t.id = @id ";
+
+			return dbQueryHelper.QuerySingle<UpsertTask>(sql, new { id });
+		}
+
+		public long InsertTask(UpsertTask task, long userId)
+		{
+			var sql = @"
+				INSERT INTO taskmgmt.public.task (title, description, status_id, assigned_user_id, created_by)
+				VALUES (@Title, @Description, @StatusId, @AssignedUserId, @userId) RETURNING ID ";
 
 			var parameters = new
 			{
@@ -30,10 +49,10 @@ namespace Service
 				userId
 			};
 
-			return dbQueryHelper.QueryScalar<int>(sql, parameters);
+			return dbQueryHelper.QueryScalar<long>(sql, parameters);
 		}
 
-		public int UpdateTask(UpsertTask task, int userId)
+		public long UpdateTask(UpsertTask task, long userId)
 		{
 			var sql = @"
 				UPDATE taskmgmt.public.task

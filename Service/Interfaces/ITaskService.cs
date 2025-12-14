@@ -9,8 +9,10 @@ namespace Service.Interfaces
 	{
 		IEnumerable<Task> GetTasks();
 
-		int InsertTask(UpsertTask task, int userId);
+		UpsertTask? GetTask(long id);
 
-		int UpdateTask(UpsertTask task, int userId);
+		long InsertTask(UpsertTask task, long userId);
+
+		long UpdateTask(UpsertTask task, long userId);
 	}
 }

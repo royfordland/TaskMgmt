@@ -8,12 +8,12 @@ namespace Service.Interfaces
 	{
 		IEnumerable<TaskStatus> GetStatuses();
 
-		TaskStatus? GetStatusById(int id);
+		TaskStatus? GetStatus(long id);
 
-		int InsertStatus(string status, int userId);
+		long InsertStatus(string status, long userId);
 
-		int UpdateStatus(TaskStatus status, int userId);
+		long UpdateStatus(TaskStatus status, long userId);
 
-		void DeleteStatus(int id, int userId);
+		void DeleteStatus(long id, long userId);
 	}
 }
