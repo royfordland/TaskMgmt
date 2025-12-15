@@ -31,13 +31,14 @@ namespace Service
 		public long? InsertUser(string username, string email, string password)
 		{
 			var sql = $@"
-				INSERT INTO {userTable} (username, email)
-				VALUES (@username, @email) RETURNING ID ";
+				INSERT INTO {userTable} (username, email, password)
+				VALUES (@username, @email, @password) RETURNING ID ";
 
 			var parameters = new
 			{
 				username,
-				email
+				email,
+				password
 			};
 
 			return dbQueryHelper.QueryScalar<long?>(sql, parameters);
