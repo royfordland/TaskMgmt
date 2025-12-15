@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
 using TaskStatus = Service.Models.TaskStatus;
 
@@ -6,6 +8,7 @@ namespace Api.Controllers
 {
 	[ApiController]
 	[Route("api/admin")]
+	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 	public class AdminController(IAdminService adminService, ITaskStatusService taskStatusService) : Controller
 	{
 		[HttpGet("taskstatuses")]

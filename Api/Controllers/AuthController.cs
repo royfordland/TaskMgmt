@@ -1,5 +1,6 @@
 using Api.Contracts.Requests;
 using Api.Contracts.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
 
@@ -7,6 +8,7 @@ namespace Api.Controllers
 {
 	[ApiController]
 	[Route("api/auth")]
+	[AllowAnonymous]
 	public class AuthController(IAuthService authService, ITokenService tokenService) : ControllerBase
 	{
 		[HttpPost("register")]
@@ -31,6 +33,7 @@ namespace Api.Controllers
 		}
 
 		[HttpPost("login")]
+		[AllowAnonymous]
 		public ActionResult<AuthResponse> Login([FromBody] LoginRequest request)
 		{
 			if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))

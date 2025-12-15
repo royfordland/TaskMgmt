@@ -1,24 +1,30 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
 using Service.Models;
+using System.Security.Claims;
 using Task = Service.Models.Task;
 
 namespace Api.Controllers
 {
 	[ApiController]
 	[Route("api/task")]
-	public class TaskController(ITaskService taskService) : Controller
+	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+	public class TaskController(ITaskService taskService) : ExtendedControllerBase
 	{
 		[HttpGet()]
 		public ActionResult<IEnumerable<Task>> GetTasks()
 		{
+			var userid = UserId;
+
 			var tasks = taskService.GetTasks();
 
 			return Ok(tasks);
 		}
 
 		[HttpGet("{id}")]
-		public ActionResult<UpsertTask> GetTask(int id)
+		public ActionResult<UpsertTask> GetTask(long id)
 		{
 			var task = taskService.GetTask(id);
 
@@ -26,9 +32,14 @@ namespace Api.Controllers
 		}
 
 		[HttpPost()]
-		public ActionResult<int> InsertTask(UpsertTask task)
+		public ActionResult<long> InsertTask(UpsertTask task)
 		{
-			int userId = 1; // Placeholder for authenticated user ID
+			// Extract user id from JWT claims (support common claim types)
+			var nameId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+			if (!long.TryParse(nameId, out var userId))
+			{
+				return Unauthorized();
+			}
 
 			var id = taskService.InsertTask(task, userId);
 
@@ -36,9 +47,14 @@ namespace Api.Controllers
 		}
 
 		[HttpPatch()]
-		public ActionResult<int> UpdateTask(UpsertTask task)
+		public ActionResult<long> UpdateTask(UpsertTask task)
 		{
-			int userId = 1; // Placeholder for authenticated user ID
+			// Extract user id from JWT claims (support common claim types)
+			var nameId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+			if (!long.TryParse(nameId, out var userId))
+			{
+				return Unauthorized();
+			}
 
 			var id = taskService.UpdateTask(task, userId);
 

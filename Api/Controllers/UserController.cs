@@ -1,19 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
 using Service.Models;
 
 namespace Api.Controllers
 {
-	//public class UserController : Controller
-	//{
-	//	public IActionResult Index()
-	//	{
-	//		return View();
-	//	}
-	//}
-
 	[ApiController]
 	[Route("api/user")]
+	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 	public class UserController(IUserService userService) : Controller
 	{
 		[HttpGet()]
