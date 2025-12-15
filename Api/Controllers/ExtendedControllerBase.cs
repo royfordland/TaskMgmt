@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Service.Interfaces;
+using Service.Models;
 
 namespace Api.Controllers
 {
-	public class ExtendedControllerBase : ControllerBase
+	public class ExtendedControllerBase(IUserService userService) : ControllerBase
 	{
 		private long? _userId;
 
@@ -24,6 +26,18 @@ namespace Api.Controllers
 				}
 
 				return _userId.Value;
+			}
+		}
+
+		private User? _loggedInUser;
+
+		public User? LoggedInUser
+		{
+			get
+			{
+				_loggedInUser ??= userService.GetUser(UserId);
+
+				return _loggedInUser;
 			}
 		}
 	}

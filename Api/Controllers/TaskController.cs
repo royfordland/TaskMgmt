@@ -11,13 +11,13 @@ namespace Api.Controllers
 	[ApiController]
 	[Route("api/task")]
 	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-	public class TaskController(ITaskService taskService) : ExtendedControllerBase
+	public class TaskController(ITaskService taskService, IUserService userService) : ExtendedControllerBase(userService)
 	{
+		private readonly ITaskService taskService = taskService;
+
 		[HttpGet()]
 		public ActionResult<IEnumerable<Task>> GetTasks()
 		{
-			var userid = UserId;
-
 			var tasks = taskService.GetTasks();
 
 			return Ok(tasks);

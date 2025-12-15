@@ -9,12 +9,14 @@ namespace Api.Controllers
 	[ApiController]
 	[Route("api/user")]
 	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-	public class UserController(IUserService userService) : Controller
+	public class UserController(IUserService userService) : ExtendedControllerBase(userService)
 	{
+		private readonly IUserService _userService = userService;
+
 		[HttpGet()]
 		public ActionResult<IEnumerable<User>> GetTasks()
 		{
-			var users = userService.GetUsers();
+			var users = _userService.GetUsers();
 
 			return Ok(users);
 		}
@@ -22,7 +24,7 @@ namespace Api.Controllers
 		[HttpGet("{id}")]
 		public ActionResult<User> GetUser(int id)
 		{
-			var task = userService.GetUser(id);
+			var task = _userService.GetUser(id);
 
 			return Ok(task);
 		}
@@ -30,7 +32,7 @@ namespace Api.Controllers
 		[HttpPost()]
 		public ActionResult<long> InsertUser(string username, string email)
 		{
-			var id = userService.InsertUser(username, email, "");
+			var id = _userService.InsertUser(username, email, "");
 
 			return Ok(id);
 		}
@@ -38,9 +40,7 @@ namespace Api.Controllers
 		[HttpPatch()]
 		public ActionResult<long> UpdateUser(User user)
 		{
-			var userId = 1; // Placeholder for authenticated user ID
-
-			var id = userService.UpdateUser(user, userId);
+			var id = _userService.UpdateUser(user, UserId);
 
 			return Ok(id);
 		}
@@ -48,9 +48,7 @@ namespace Api.Controllers
 		[HttpDelete()]
 		public ActionResult<int> DeleteUser(int id)
 		{
-			int userId = 1; // Placeholder for authenticated user ID
-
-			userService.DeleteUser(id, userId);
+			_userService.DeleteUser(id, UserId);
 
 			return Ok(StatusCodes.Status204NoContent);
 		}
