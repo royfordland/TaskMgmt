@@ -14,17 +14,31 @@ namespace Api.Controllers
 		[HttpGet("taskstatus")]
 		public ActionResult<IEnumerable<TaskStatus>> GetStatuses()
 		{
-			var statuses = taskStatusService.GetStatuses();
+			if (LoggedInUser is not null && LoggedInUser.IsAdmin)
+			{
+				var statuses = taskStatusService.GetStatuses();
 
-			return Ok(statuses);
+				return Ok(statuses);
+			}
+			else
+			{
+				return Unauthorized();
+			}
 		}
 
 		[HttpGet("taskstatus/{id}")]
 		public ActionResult<TaskStatus> GetStatus(int id)
 		{
-			var status = taskStatusService.GetStatus(id);
+			if (LoggedInUser is not null && LoggedInUser.IsAdmin)
+			{
+				var status = taskStatusService.GetStatus(id);
 
-			return Ok(status);
+				return Ok(status);
+			}
+			else
+			{
+				return Unauthorized();
+			}
 		}
 
 		[HttpPost("taskstatus")]
