@@ -1,0 +1,101 @@
+﻿@page "/register"
+@rendermode InteractiveServer
+
+@using System.Text
+@using System.Text.Json
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<PageTitle>Register</PageTitle>
+
+<h1>Register</h1>
+
+@if (HasToken)
+{
+    <p>You are logged in.</p>
+}
+else
+{
+    <div>
+        <div>
+            <label>Username</label><br />
+            <input @bind="registerModel.Username" />
+        </div>
+        <div>
+            <label>Email</label><br />
+            <input @bind="registerModel.Email" />
+        </div>
+        <div>
+            <label>Password</label><br />
+            <input type="password" @bind="registerModel.Password" />
+        </div>
+
+        <div style="margin-top:8px">
+            <button type="button" @onclick="SubmitAsync">Register</button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <p>@Message</p>
+        }
+    </div>
+}
+
+@code {
+    private bool HasToken;
+    private string? Message;
+    private RegisterModel registerModel = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await JS.InvokeAsync<string?>("localStorage.getItem", "jwtToken");
+            HasToken = !string.IsNullOrEmpty(token);
+        }
+        catch
+        {
+            HasToken = false;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        Message = null;
+
+        var payload = new
+        {
+            username = registerModel.Username,
+            email = registerModel.Email,
+            password = registerModel.Password
+        };
+
+        try
+        {
+            var json = JsonSerializer.Serialize(payload);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await Http.PostAsync("/api/auth/register", content);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                Message = "Registration was successful";
+            }
+            else
+            {
+                Message = $"Request failed ({(int)response.StatusCode}): {responseBody}";
+            }
+        }
+        catch (Exception ex)
+        {
+            Message = ex.Message;
+        }
+    }
+
+    private class RegisterModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

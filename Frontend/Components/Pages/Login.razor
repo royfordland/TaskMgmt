@@ -1,0 +1,176 @@
+﻿@page "/login"
+@rendermode InteractiveServer
+
+@using System.Text
+@using System.Text.Json
+@using System.IdentityModel.Tokens.Jwt
+@using Frontend.Services.Constants
+@inject HttpClient Http
+@inject Frontend.Services.Interfaces.IJsTokenStorage JsTokenStorage
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+
+<PageTitle>Login</PageTitle>
+
+<h1>Login</h1>
+
+<div>
+    <div>
+        <label>Username</label><br />
+        <input @bind="loginModel.Username" />
+    </div>
+    <div>
+        <label>Password</label><br />
+        <input @bind="loginModel.Password" />
+    </div>
+
+    <div style="margin-top:8px">
+        <button type="button" @onclick="SubmitAsync">Login</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p>@Message</p>
+    }
+</div>
+
+@code {
+    private bool HasToken;
+    private string? Message;
+    private LoginModel loginModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await JsTokenStorage.GetTokenAsync(TokenConstants.JwtTokenKey);
+            HasToken = !string.IsNullOrEmpty(token);
+
+            if (HasToken)
+            {
+                Nav.NavigateTo("/");
+            }
+        }
+        catch
+        {
+            HasToken = false;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        Message = null;
+
+        var payload = new
+        {
+            username = loginModel.Username,
+            password = loginModel.Password
+        };
+
+        try
+        {
+            var json = JsonSerializer.Serialize(payload);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await Http.PostAsync("/api/auth/login", content);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                var newToken = string.Empty;
+
+                try
+                {
+                    using var doc = JsonDocument.Parse(responseBody);
+                    JsonElement root = doc.RootElement;
+
+                    if (TryGetTokenFromJson(root, out var tokenValue) && !string.IsNullOrEmpty(tokenValue))
+                    {
+                        newToken = tokenValue;
+                        await JsTokenStorage.SetTokenAsync(TokenConstants.JwtTokenKey, tokenValue);
+
+                        try
+                        {
+                            var handler = new JwtSecurityTokenHandler();
+                            var jwt = handler.ReadJwtToken(tokenValue);
+
+                            var subClaim = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+                            var isAdminClaim = jwt.Claims.FirstOrDefault(c => c.Type == "is_admin");
+
+                            if (subClaim is not null)
+                            {
+                                await JsTokenStorage.SetTokenAsync(TokenConstants.UserIdKey, subClaim.Value);
+                            }
+
+                            if (isAdminClaim is not null)
+                            {
+                                await JsTokenStorage.SetTokenAsync(TokenConstants.IsAdminKey, isAdminClaim.Value);
+                            }
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+
+                        HasToken = true;
+                        Message = "Token received and saved.";
+                        StateHasChanged();
+                        Nav.NavigateTo("/");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Message = $"Request failed: {ex.Message}";
+                }
+            }
+            else
+            {
+                Message = $"Request failed ({(int)response.StatusCode}): {responseBody}";
+            }
+        }
+        catch (Exception ex)
+        {
+            Message = ex.Message;
+        }
+    }
+
+    private static bool TryGetTokenFromJson(JsonElement root, out string? token)
+    {
+        token = null;
+
+        if (root.ValueKind == JsonValueKind.Object)
+        {
+            if (root.TryGetProperty("token", out var t) && t.ValueKind == JsonValueKind.String)
+            {
+                token = t.GetString();
+                return true;
+            }
+
+            if (root.TryGetProperty("accessToken", out var at) && at.ValueKind == JsonValueKind.String)
+            {
+                token = at.GetString();
+                return true;
+            }
+
+            if (root.TryGetProperty("jwt", out var j) && j.ValueKind == JsonValueKind.String)
+            {
+                token = j.GetString();
+                return true;
+            }
+        }
+
+        if (root.ValueKind == JsonValueKind.String)
+        {
+            token = root.GetString();
+            return true;
+        }
+
+        return false;
+    }
+
+    private class LoginModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

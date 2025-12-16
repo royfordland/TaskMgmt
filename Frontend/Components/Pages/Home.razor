@@ -1,0 +1,86 @@
+﻿@page "/"
+@using Frontend.Services
+@using Frontend.Services.Constants
+@rendermode InteractiveServer
+
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello!</h1>
+
+@if (HasToken)
+{
+    <p>You are logged in.</p>
+
+    <p>Set the admin flag to true in the database in order to go to the admin page.</p>
+
+    <ul>
+        @if (IsAdmin)
+        {
+            <li><NavLink href="admin">Admin</NavLink></li>
+        }
+        <li><NavLink href="tasks/list">Tasks</NavLink></li>
+    </ul>
+
+    <button class="btn btn-link" @onclick="LogoutAsync">Logout</button>
+}
+else
+{
+    <div>
+        <p>Please sign in or register to continue.</p>
+        <NavLink href="login">Login</NavLink> or <NavLink href="register">Register</NavLink> 
+    </div>
+}
+
+@code {
+    private bool HasToken;
+    private bool IsAdmin;
+
+    private JsTokenStorage? _jsTokenStorage;
+
+    protected override void OnInitialized()
+    {
+        _jsTokenStorage = new JsTokenStorage(JS);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        try
+        {
+            var token = await _jsTokenStorage!.GetTokenAsync(TokenConstants.JwtTokenKey);
+            HasToken = !string.IsNullOrEmpty(token);
+
+			var isAdmin = await _jsTokenStorage.GetTokenAsync(TokenConstants.IsAdminKey);
+			IsAdmin = isAdmin == "1";
+        }
+        catch
+        {
+            HasToken = false;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task LogoutAsync()
+    {
+        try
+        {
+            await _jsTokenStorage!.RemoveTokenAsync(TokenConstants.JwtTokenKey);
+        }
+        catch
+        {
+            // ignore
+        }
+
+        HasToken = false;
+        StateHasChanged();
+
+        Nav.NavigateTo("/");
+    }
+}
+
+

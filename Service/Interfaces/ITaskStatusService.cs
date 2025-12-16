@@ -6,7 +6,7 @@ namespace Service.Interfaces
 	[ScopedService]
 	public interface ITaskStatusService
 	{
-		IEnumerable<TaskStatus> GetStatuses();
+		IEnumerable<TaskStatus> GetStatuses(bool isActiveOnly = false);
 
 		TaskStatus? GetStatus(long id);
 

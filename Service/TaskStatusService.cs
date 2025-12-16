@@ -5,9 +5,9 @@ namespace Service
 {
 	public class TaskStatusService(IDbQueryHelper dbQueryHelper) : ITaskStatusService
 	{
-		public IEnumerable<TaskStatus> GetStatuses()
+		public IEnumerable<TaskStatus> GetStatuses(bool isActiveOnly = false)
 		{
-			const string sql = "SELECT id, status, is_active FROM taskmgmt.public.task_status";
+			var sql = $"SELECT id, status, is_active FROM taskmgmt.public.task_status {(isActiveOnly ? " WHERE is_active = true " : "")}";
 
 			return dbQueryHelper.QueryList<TaskStatus>(sql);
 		}

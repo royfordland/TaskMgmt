@@ -14,9 +14,9 @@ namespace Api.Controllers
 		private readonly IUserService _userService = userService;
 
 		[HttpGet()]
-		public ActionResult<IEnumerable<User>> GetTasks()
+		public ActionResult<IEnumerable<User>> GetUsers()
 		{
-			var users = _userService.GetUsers();
+			var users = _userService.GetUsers(true);
 
 			return Ok(users);
 		}

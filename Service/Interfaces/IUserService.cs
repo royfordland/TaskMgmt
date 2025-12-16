@@ -6,7 +6,7 @@ namespace Service.Interfaces
 	[ScopedService]
 	public interface IUserService
 	{
-		IEnumerable<User> GetUsers();
+		IEnumerable<User> GetUsers(bool isActiveOnly = false);
 
 		User? GetUser(long id);
 

@@ -9,11 +9,12 @@ namespace Service
 		// conflicts with SQL reserved keywords. In order to avoid typos, use this const instead.
 		private const string userTable = @"taskmgmt.public.""user""";
 
-		public IEnumerable<User> GetUsers()
+		public IEnumerable<User> GetUsers(bool isActiveOnly = false)
 		{
 			var sql = $@"
 				SELECT id, username, email, is_active, is_admin
-				FROM {userTable} ";
+				FROM {userTable}
+				 {(isActiveOnly ? " WHERE is_active = true " : "")} ";
 
 			return dbQueryHelper.QueryList<User>(sql);
 		}

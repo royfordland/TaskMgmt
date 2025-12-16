@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
 using Service.Models;
-using System.Security.Claims;
 using Task = Service.Models.Task;
 
 namespace Api.Controllers
@@ -11,9 +10,17 @@ namespace Api.Controllers
 	[ApiController]
 	[Route("api/task")]
 	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-	public class TaskController(ITaskService taskService, IUserService userService) : ExtendedControllerBase(userService)
+	public class TaskController(ITaskService taskService, ITaskStatusService taskStatusService, IUserService userService) : ExtendedControllerBase(userService)
 	{
 		private readonly ITaskService taskService = taskService;
+
+		[HttpGet("statuslist")]
+		public ActionResult<IEnumerable<Task>> GetStatuses()
+		{
+			var statuses = taskStatusService.GetStatuses(true);
+
+			return Ok(statuses);
+		}
 
 		[HttpGet()]
 		public ActionResult<IEnumerable<Task>> GetTasks()
@@ -34,14 +41,7 @@ namespace Api.Controllers
 		[HttpPost()]
 		public ActionResult<long> InsertTask(UpsertTask task)
 		{
-			// Extract user id from JWT claims (support common claim types)
-			var nameId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
-			if (!long.TryParse(nameId, out var userId))
-			{
-				return Unauthorized();
-			}
-
-			var id = taskService.InsertTask(task, userId);
+			var id = taskService.InsertTask(task, UserId);
 
 			return Ok(id);
 		}
@@ -49,14 +49,7 @@ namespace Api.Controllers
 		[HttpPatch()]
 		public ActionResult<long> UpdateTask(UpsertTask task)
 		{
-			// Extract user id from JWT claims (support common claim types)
-			var nameId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
-			if (!long.TryParse(nameId, out var userId))
-			{
-				return Unauthorized();
-			}
-
-			var id = taskService.UpdateTask(task, userId);
+			var id = taskService.UpdateTask(task, UserId);
 
 			return Ok(id);
 		}

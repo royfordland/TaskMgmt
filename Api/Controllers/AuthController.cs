@@ -12,7 +12,7 @@ namespace Api.Controllers
 	public class AuthController(IAuthService authService, ITokenService tokenService) : ControllerBase
 	{
 		[HttpPost("register")]
-		public ActionResult<long> Register([FromBody] RegisterRequest request)
+		public ActionResult<long> Register(RegisterRequest request)
 		{
 			if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
 			{
@@ -34,7 +34,7 @@ namespace Api.Controllers
 
 		[HttpPost("login")]
 		[AllowAnonymous]
-		public ActionResult<AuthResponse> Login([FromBody] LoginRequest request)
+		public ActionResult<AuthResponse> Login(LoginRequest request)
 		{
 			if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
 			{

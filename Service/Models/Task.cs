@@ -1,8 +1,10 @@
-﻿namespace Service.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Service.Models
 {
 	public abstract class TaskBase
 	{
-		public int? Id { get; set; }
+		public long? Id { get; set; }
 
 		public string Title { get; set; } = "";
 
@@ -18,8 +20,10 @@
 
 	public class UpsertTask : TaskBase
 	{
-		public int StatusId { get; set; }
+		[Column("status_id")]
+		public long StatusId { get; set; }
 
-		public int AssignedUserId { get; set; }
+		[Column("assigned_user_id")]
+		public long AssignedUserId { get; set; }
 	}
 }

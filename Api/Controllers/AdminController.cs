@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Service;
 using Service.Interfaces;
 using TaskStatus = Service.Models.TaskStatus;
 
@@ -12,7 +11,7 @@ namespace Api.Controllers
 	[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 	public class AdminController(IAdminService adminService, ITaskStatusService taskStatusService, IUserService userService) : ExtendedControllerBase(userService)
 	{
-		[HttpGet("taskstatuses")]
+		[HttpGet("taskstatus")]
 		public ActionResult<IEnumerable<TaskStatus>> GetStatuses()
 		{
 			var statuses = taskStatusService.GetStatuses();
@@ -31,41 +30,61 @@ namespace Api.Controllers
 		[HttpPost("taskstatus")]
 		public ActionResult<TaskStatus> InsertStatus(string status)
 		{
-			int userId = 1; // Placeholder for authenticated user ID
+			if (LoggedInUser is not null && LoggedInUser.IsAdmin)
+			{
+				var id = taskStatusService.InsertStatus(status, UserId);
 
-			var id = taskStatusService.InsertStatus(status, userId);
-
-			return Ok(id);
+				return Ok(id);
+			}
+			else
+			{
+				return Unauthorized();
+			}
 		}
 
 		[HttpPatch("taskstatus")]
 		public ActionResult<TaskStatus> UpdateStatus(TaskStatus status)
 		{
-			int userId = 1; // Placeholder for authenticated user ID
+			if (LoggedInUser is not null && LoggedInUser.IsAdmin)
+			{
+				var id = taskStatusService.UpdateStatus(status, UserId);
 
-			var id = taskStatusService.UpdateStatus(status, userId);
-
-			return Ok(id);
+				return Ok(id);
+			}
+			else
+			{
+				return Unauthorized();
+			}
 		}
 
 		[HttpDelete("taskstatus")]
 		public ActionResult<TaskStatus> DeleteStatus(int id)
 		{
-			int userId = 1; // Placeholder for authenticated user ID
+			if (LoggedInUser is not null && LoggedInUser.IsAdmin)
+			{
+				taskStatusService.DeleteStatus(id, UserId);
 
-			taskStatusService.DeleteStatus(id, userId);
-
-			return Ok(StatusCodes.Status204NoContent);
+				return Ok(StatusCodes.Status204NoContent);
+			}
+			else
+			{
+				return Unauthorized();
+			}
 		}
 
 		[HttpPatch("user")]
 		public ActionResult<TaskStatus> UpdateUsername(string name, int id)
 		{
-			int userId = 1; // Placeholder for authenticated user ID
+			if (LoggedInUser is not null && LoggedInUser.IsAdmin)
+			{
+				adminService.UpdateUsername(name, id, UserId);
 
-			adminService.UpdateUsername(name, id, userId);
-
-			return Ok(StatusCodes.Status204NoContent);
+				return Ok(StatusCodes.Status204NoContent);
+			}
+			else
+			{
+				return Unauthorized();
+			}
 		}
 	}
 }

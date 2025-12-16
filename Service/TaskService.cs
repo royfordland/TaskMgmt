@@ -16,9 +16,9 @@ namespace Service
 					status,
 					username as assigneduser
 				FROM taskmgmt.public.task t
-				INNER JOIN taskmgmt.public.""user"" u
+				LEFT JOIN taskmgmt.public.""user"" u
 					ON t.assigned_user_id = u.id
-				INNER JOIN taskmgmt.public.task_status ts
+				LEFT JOIN taskmgmt.public.task_status ts
 					ON t.status_id = ts.id ";
 
 			return dbQueryHelper.QueryList<Task>(sql);
@@ -29,7 +29,7 @@ namespace Service
 			var sql = @"
 				SELECT id, title, description, status_id, assigned_user_id
 				FROM taskmgmt.public.task
-				WHERE t.id = @id ";
+				WHERE id = @id ";
 
 			return dbQueryHelper.QuerySingle<UpsertTask>(sql, new { id });
 		}

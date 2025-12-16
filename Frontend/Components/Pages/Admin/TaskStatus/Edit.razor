@@ -1,0 +1,149 @@
+﻿@page "/admin/taskstatus/edit"
+@using System.Text.Json
+@using System.Text
+@using Frontend.Services
+@using Frontend.Services.Constants
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@inject Frontend.Services.Interfaces.IJsTokenStorage JsTokenStorage
+@rendermode InteractiveServer
+
+<h3>Admin - @Verb Task Status</h3>
+
+<div>
+    <div>
+        <label>Status</label><br />
+        <input @bind="taskStatusModel.Status" />
+    </div>
+    @if (!IsNew)
+    {
+        <div>
+            <label>Is Active</label><br />
+            <InputCheckbox @bind-Value="taskStatusModel.IsActive" />
+        </div>
+    }
+
+    <div style="margin-top:8px">
+        <button type="button" @onclick="SubmitAsync">@Verb Task Status</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p>@Message</p>
+    }
+</div>
+
+@code {
+    private string Verb = "Add";
+    private string? Message;
+    private TaskStatusModel taskStatusModel = new();
+    private bool IsNew = true;
+    private JsTokenStorage? _jsTokenStorage;
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "id")]
+    public int? Id { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _jsTokenStorage = new JsTokenStorage(JS);
+
+        if (Id.HasValue)
+        {
+            IsNew = false;
+            Verb = "Edit";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                _jsTokenStorage = new JsTokenStorage(JS);
+
+                var token = await _jsTokenStorage!.GetTokenAsync(TokenConstants.JwtTokenKey);
+                using var request = new HttpRequestMessage(HttpMethod.Get, $"api/admin/taskstatus/{Id}");
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                }
+
+                var response = await Http.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    taskStatusModel = await response.Content.ReadFromJsonAsync<TaskStatusModel>() ?? new();
+                }
+
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        Message = null;
+
+        var payload = GetPayload();
+
+        try
+        {
+            var token = await JsTokenStorage.GetTokenAsync(TokenConstants.JwtTokenKey);
+            if (string.IsNullOrEmpty(token))
+            {
+                Nav.NavigateTo("/");
+                return;
+            }
+
+            var json = JsonSerializer.Serialize(payload);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            using var request = IsNew
+                ? new HttpRequestMessage(HttpMethod.Post, $"/api/admin/taskstatus?status={taskStatusModel.Status}")
+                : new HttpRequestMessage(new HttpMethod("PATCH"), "/api/admin/taskstatus") { Content = content };
+
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.SendAsync(request);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                Nav.NavigateTo("/admin/taskstatus/list");
+            }
+            else
+            {
+                Message = $"Request failed ({(int)response.StatusCode}): {responseBody}";
+            }
+        }
+        catch (Exception ex)
+        {
+            Message = ex.Message;
+        }
+    }
+
+    private object GetPayload()
+    {
+        return new
+        {
+            id = taskStatusModel.Id,
+            status = taskStatusModel.Status,
+            isActive = taskStatusModel.IsActive
+        };        
+    }
+
+    private class TaskStatusModel
+    {
+		public long Id { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+    }
+}

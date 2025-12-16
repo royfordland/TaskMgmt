@@ -15,7 +15,7 @@ namespace Service
 		/// <param name="name"></param>
 		/// <param name="id"></param>
 		/// <param name="userId"></param>
-		public void UpdateUsername(string name, int id, int userId)
+		public void UpdateUsername(string name, long id, long userId)
 		{
 			var sql = @"
 				UPDATE taskmgmt.public.user

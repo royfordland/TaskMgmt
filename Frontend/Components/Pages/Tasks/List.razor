@@ -1,0 +1,113 @@
+﻿@page "/tasks/list"
+@rendermode InteractiveServer
+
+@using System.Net.Http.Json
+@using Frontend.Services
+@using Frontend.Services.Constants
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<PageTitle>Tasks</PageTitle>
+
+<h1>Tasks</h1>
+
+<p>This component shows tasks currently in the database.</p>
+
+<p>Click <a href="/tasks/edit">here</a> to add a new task.</p>
+
+@if (tasks == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (tasks.Count == 0)
+{
+    <p><em>No tasks found.</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Assigned User</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var task in tasks)
+            {
+                <tr>
+                    <td>@task.Id</td>
+                    <td>@task.Title</td>
+                    <td>@task.Description</td>
+                    <td>@task.Status</td>
+                    <td>@task.AssignedUser</td>
+                    <td>
+                        <a class="btn btn-link p-0" href="@($"/tasks/edit?id={task.Id}")" title="Edit" aria-label="Edit">
+                            <!-- I asked Copilot for a pencil icon and it gave me this svg stuff. -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle">
+                                <path d="M12 20h9" />
+                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                            </svg>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string? Message;
+    private List<TaskModel> tasks = [];
+    private JsTokenStorage? _jsTokenStorage;
+
+    protected override void OnInitialized()
+    {
+        _jsTokenStorage = new JsTokenStorage(JS);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            if (firstRender)
+            {
+                _jsTokenStorage = new JsTokenStorage(JS);
+
+                var token = await _jsTokenStorage!.GetTokenAsync(TokenConstants.JwtTokenKey);
+                using var request = new HttpRequestMessage(HttpMethod.Get, "api/task");
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                }
+
+                var response = await Http.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    tasks = await response.Content.ReadFromJsonAsync<List<TaskModel>>() ?? [];
+                }
+
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    private class TaskModel
+    {
+        public long Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string AssignedUser { get; set; } = "";
+    }
+}
