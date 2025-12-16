@@ -4,7 +4,6 @@
 @using Frontend.Services
 @using Frontend.Services.Constants
 @inject HttpClient Http
-@inject IJSRuntime JS
 @inject NavigationManager Nav
 @inject Frontend.Services.Interfaces.IJsTokenStorage JsTokenStorage
 @rendermode InteractiveServer
@@ -39,7 +38,6 @@
     private string? Message;
     private TaskStatusModel taskStatusModel = new();
     private bool IsNew = true;
-    private JsTokenStorage? _jsTokenStorage;
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "id")]
@@ -47,8 +45,6 @@
 
     protected override void OnInitialized()
     {
-        _jsTokenStorage = new JsTokenStorage(JS);
-
         if (Id.HasValue)
         {
             IsNew = false;
@@ -62,9 +58,7 @@
         {
             if (firstRender)
             {
-                _jsTokenStorage = new JsTokenStorage(JS);
-
-                var token = await _jsTokenStorage!.GetTokenAsync(TokenConstants.JwtTokenKey);
+                var token = await JsTokenStorage!.GetTokenAsync(TokenConstants.JwtTokenKey);
                 using var request = new HttpRequestMessage(HttpMethod.Get, $"api/admin/taskstatus/{Id}");
 
                 if (!string.IsNullOrEmpty(token))
@@ -117,7 +111,7 @@
 
             if (response.IsSuccessStatusCode)
             {
-                Nav.NavigateTo("/admin/taskstatus/list");
+                Nav.NavigateTo("/admin/taskstatus/list", true);
             }
             else
             {

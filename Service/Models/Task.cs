@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Insight.Database;
 
 namespace Service.Models
 {

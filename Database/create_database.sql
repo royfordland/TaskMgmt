@@ -60,8 +60,7 @@ CREATE TABLE taskmgmt.public.task (
 	updated_by bigint NULL,
 	updated_dt timestamp NULL,
 	CONSTRAINT task_pk PRIMARY KEY (id),
-	CONSTRAINT task_task_status_fk FOREIGN KEY (id) REFERENCES taskmgmt.public.task_status(id),
-	CONSTRAINT task_user_fk FOREIGN KEY (assigned_user_id) REFERENCES taskmgmt.public.user(id)
+	CONSTRAINT task_task_status_fk FOREIGN KEY (status_id) REFERENCES taskmgmt.public.task_status(id)
 );
 
 -- Column comments

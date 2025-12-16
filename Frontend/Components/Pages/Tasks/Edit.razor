@@ -9,7 +9,6 @@
 @using Microsoft.AspNetCore.Components
 @inject HttpClient Http
 @inject Frontend.Services.Interfaces.IJsTokenStorage JsTokenStorage
-@inject IJSRuntime JS
 @inject NavigationManager Nav
 
 <PageTitle>@Verb Task</PageTitle>
@@ -30,48 +29,68 @@
 </ul>
 
 <div>
-    <div>
-        <label>Title</label><br />
-        <input @bind="taskModel.Title" />
+    <div class="form-row">
+        <label>Title</label>
+        @if (IsNew || IsAdmin)
+        {
+            <input @bind="taskModel.Title" />
+        }
+        else
+        {
+            @taskModel.Title
+        }
     </div>
-    <div>
-        <label>Description</label><br />
-        <input @bind="taskModel.Description" />
+    <div class="form-row">
+        <label>Description</label>
+        @if (IsNew || IsAdmin)
+        {
+            <input @bind="taskModel.Description" />
+        }
+        else
+        {
+            @taskModel.Description
+        }
     </div>
 
     @if (!IsNew)
     {
-        <div>
-            <label>Status</label><br />
+        <div class="form-row">
+            <label>Status</label>
             <select @bind="taskModel.StatusId">
                 @foreach (var status in taskStatuses)
                 {
                     <option value="@status.Id">@status.Status</option>
-			    }
-            </select>
+                }
+            </select>            
         </div>
-        <div>
-            <label>Assigned User</label><br />
+        <div class="form-row">
+            <label>Assigned User</label>
 
 		    @if (IsAdmin)
-            {                
+            {
                 <select @bind="taskModel.AssignedUserId">
-                    <option>-- Select a User --</option>
                     @foreach (var user in users)
                     {
                         <option value="@user.Id">@user.Username</option>
                     }
-                </select>           
+                </select>
             }
             else
             {
-                @currentUser.Username
+                @if (taskModel.AssignedUserId == 0)
+                { 
+                    <span>- unassigned -</span>
+                }
+                else
+                {
+                    @currentUser.Username
+                }
             }
         </div>
     }    
 
     <div style="margin-top:8px">
-        <button type="button" @onclick="SubmitAsync">@Verb Task Status</button>
+        <button type="button" @onclick="SubmitAsync">@Verb Task</button>
     </div>
 
     @if (!string.IsNullOrEmpty(Message))
@@ -85,12 +104,12 @@
     private string? Message;    
     private bool IsNew = true;
     private bool IsAdmin = false;
-    private JsTokenStorage? _jsTokenStorage;
-
+    
     private UpsertTaskModel taskModel = new();
     private List<TaskStatusModel> taskStatuses = [];
     private List<UserModel> users = [];
     private UserModel currentUser = new();
+    private string Status = "";
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "id")]
@@ -98,12 +117,10 @@
 
     protected override void OnInitialized()
     {
-        _jsTokenStorage = new JsTokenStorage(JS);
-
         if (Id.HasValue)
         {
             IsNew = false;
-            Verb = "Edit";
+            Verb = "Update";
         }
     }
 
@@ -113,25 +130,25 @@
         {
             if (firstRender)
             {
-                _jsTokenStorage = new JsTokenStorage(JS);
+                var token = await JsTokenStorage!.GetTokenAsync(TokenConstants.JwtTokenKey);
+                var isAdmin = await JsTokenStorage!.GetTokenAsync(TokenConstants.IsAdminKey);
+				IsAdmin = isAdmin == "1";
 
-                var token = await _jsTokenStorage!.GetTokenAsync(TokenConstants.JwtTokenKey);
-                var isAdmin = await _jsTokenStorage!.GetTokenAsync(TokenConstants.IsAdminKey);
+                taskStatuses = await LoadTaskStatuses(token!);
 
                 if (!IsNew)
                 {
-                    LoadTask();
-                }
+                    taskModel = await LoadTask(token!);
+                    Status = taskStatuses.Where(x => x.Id == taskModel.StatusId).First().Status;
+                }                
 
-                LoadTaskStatuses(token!);
-
-                if (isAdmin == "1")
+                if (IsAdmin)
                 {
-                    LoadUsers(token!);
+                    users = await LoadUsers(token!);
                 }
                 else
                 {
-                    LoadUser(token!);
+                    currentUser = await LoadUser(token!);                    
                 }
 
                 StateHasChanged();
@@ -143,9 +160,8 @@
         }
     }
 
-    private async void LoadTask()
+    private async Task<UpsertTaskModel> LoadTask(string token)
     { 
-        var token = await _jsTokenStorage!.GetTokenAsync(TokenConstants.JwtTokenKey);
         using var request = new HttpRequestMessage(HttpMethod.Get, $"api/task/{Id}");
 
         if (!string.IsNullOrEmpty(token))
@@ -154,14 +170,17 @@
         }
 
         var response = await Http.SendAsync(request);
+        var result = new UpsertTaskModel();
 
         if (response.IsSuccessStatusCode)
         {
-            taskModel = await response.Content.ReadFromJsonAsync<UpsertTaskModel>() ?? new();
+            result = await response.Content.ReadFromJsonAsync<UpsertTaskModel>() ?? new();
         }
+
+        return result;
     }
 
-    private async void LoadTaskStatuses(string token)
+    private async Task<List<TaskStatusModel>> LoadTaskStatuses(string token)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"api/task/statuslist");
 
@@ -170,17 +189,20 @@
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         }
 
-        var response = await Http.SendAsync(request);
+        var response = await Http.SendAsync(request);    
+        var result = new List<TaskStatusModel>();
 
         if (response.IsSuccessStatusCode)
         {
-            taskStatuses = await response.Content.ReadFromJsonAsync<List<TaskStatusModel>>() ?? new();
+            result = await response.Content.ReadFromJsonAsync<List<TaskStatusModel>>() ?? new();
         }
+
+        return result;
     }
 
-    private async void LoadUser(string token)
+    private async Task<UserModel> LoadUser(string token)
     {
-        var userId = await _jsTokenStorage!.GetTokenAsync(TokenConstants.UserIdKey);
+        var userId = await JsTokenStorage!.GetTokenAsync(TokenConstants.UserIdKey);
         using var request = new HttpRequestMessage(HttpMethod.Get, $"api/user/{userId}");
 
         if (!string.IsNullOrEmpty(token))
@@ -189,14 +211,17 @@
         }
 
         var response = await Http.SendAsync(request);
+        var result = new UserModel();
 
         if (response.IsSuccessStatusCode)
         {
-            currentUser = await response.Content.ReadFromJsonAsync<UserModel>() ?? new();
+            result = await response.Content.ReadFromJsonAsync<UserModel>() ?? new();
         }
+
+        return result;
     }
 
-    private async void LoadUsers(string token)
+    private async Task<List<UserModel>> LoadUsers(string token)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, "api/user");
 
@@ -206,11 +231,14 @@
         }
 
         var response = await Http.SendAsync(request);
+        var result = new List<UserModel>();
 
         if (response.IsSuccessStatusCode)
         {
-            users = await response.Content.ReadFromJsonAsync<List<UserModel>>() ?? [];
+            result = await response.Content.ReadFromJsonAsync<List<UserModel>>() ?? [];
         }
+
+        return result;
     }
 
     private async Task SubmitAsync()
@@ -224,7 +252,7 @@
             var token = await JsTokenStorage.GetTokenAsync(TokenConstants.JwtTokenKey);
             if (string.IsNullOrEmpty(token))
             {
-                Nav.NavigateTo("/");
+                Nav.NavigateTo("/", true);
                 return;
             }
 
@@ -242,7 +270,8 @@
 
             if (response.IsSuccessStatusCode)
             {
-                Nav.NavigateTo("/admin/taskstatus/list");
+                StateHasChanged();
+                Nav.NavigateTo("/tasks/list", true);
             }
             else
             {
@@ -276,7 +305,7 @@
                 title = taskModel.Title,
                 description = taskModel.Description,
                 statusId = taskModel.StatusId,
-                assignedUserId = taskModel.AssignedUserId,
+                assignedUserId = !IsAdmin && taskModel.AssignedUserId == 0 ? currentUser.Id : taskModel.AssignedUserId,
             };
         }
     }
@@ -296,10 +325,10 @@
 
     private class UpsertTaskModel
     {
-        public int? Id { get; set; }
+        public long? Id { get; set; }
         public string Title { get; set; } = "";
         public string Description { get; set; } = ""; 
-        public int StatusId { get; set; }
-        public int AssignedUserId { get; set; }
+        public long StatusId { get; set; }
+        public long AssignedUserId { get; set; }
     }
 }
