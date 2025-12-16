@@ -32,4 +32,8 @@ In this app:
   - One instance to run the **Api** project
   - One instance to run the **Frontend** project
 - All APIs can also be accessed through the **Swagger UI** page included with the Api project.
+
+## Diagram
+
+![alt text](TaskMgmt.svg)
 # TaskMgmt
