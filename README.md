@@ -24,7 +24,7 @@ In this app:
 - **Api project:** .NET 8 controllers
 - **Service project:** .NET 8 services
 - **Service.Tests project:** Unit tests for Service project
-- **Frontend:** Blazor frontend
+- **Frontend:** Blazor frontend (this was an extra addition at the end, would be nice to refactor the models and create some more generic request handling, etc.)
 
 ## Running the Solution
 
