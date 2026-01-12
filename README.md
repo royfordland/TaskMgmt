@@ -1,6 +1,8 @@
 
 # TaskMgmt
 
+This was a coding exercise given during a job interview. The original task had less details than the bullet items below.
+
 In this app:
 
 - New users can register to get access
